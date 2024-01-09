@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { CoingeckoModule } from './coingecko/coingecko.module';
+import { SubscriptionModule } from './subscription/subscription.module';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [CoingeckoModule, SubscriptionModule, MetricsModule],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
