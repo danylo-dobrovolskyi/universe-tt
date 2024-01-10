@@ -5,9 +5,12 @@ import { CoingeckoService } from '../coingecko/coingecko.service';
 import * as nodemailer from 'nodemailer';
 import { lastValueFrom } from 'rxjs';
 import { MetricsService } from '../metrics/metrics.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class SubscriptionService {
+  private lastSentRate: number | null = null;
+
   constructor(
     private prisma: PrismaService,
     private coingeckoService: CoingeckoService,
@@ -56,9 +59,34 @@ export class SubscriptionService {
     return this.prisma.subscription.findMany();
   }
 
-  async sendEmails(): Promise<void> {
+  @Cron(CronExpression.EVERY_DAY_AT_9AM)
+  async handleDailyRateNotification() {
     const rate = await lastValueFrom(this.coingeckoService.getCurrentBtcRate());
+    await this.sendEmails(rate);
+    this.lastSentRate = rate;
+  }
 
+  async checkRateAndNotify() {
+    const currentRate = await lastValueFrom(
+      this.coingeckoService.getCurrentBtcRate(),
+    );
+    if (
+      this.lastSentRate === null ||
+      this.hasChangedMoreThanFivePercent(currentRate)
+    ) {
+      await this.sendEmails(currentRate);
+      this.lastSentRate = currentRate;
+    }
+  }
+
+  private hasChangedMoreThanFivePercent(currentRate: number): boolean {
+    if (this.lastSentRate === null) return true;
+    const change =
+      (Math.abs(currentRate - this.lastSentRate) / this.lastSentRate) * 100;
+    return change > 5;
+  }
+
+  public async sendEmails(rate: number): Promise<void> {
     const subject = 'Current BTC to UAH Rate';
     const text = `The current BTC to UAH rate is: ${rate} UAH.`;
 

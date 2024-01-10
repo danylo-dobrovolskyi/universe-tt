@@ -8,12 +8,17 @@ import {
   Get,
 } from '@nestjs/common';
 import { SubscriptionService } from './subscription.service';
+import { CoingeckoService } from '../coingecko/coingecko.service';
 import { Response } from 'express';
+import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
+//import { lastValueFrom } from 'rxjs';
 
 @Controller('subscription')
 export class SubscriptionController {
-  constructor(private readonly subscriptionService: SubscriptionService) {}
-
+  constructor(
+    private readonly subscriptionService: SubscriptionService,
+    private readonly coingeckoService: CoingeckoService,
+  ) {}
   @Post('/subscribe')
   async subscribe(@Body('email') email: string, @Res() response: Response) {
     try {
@@ -53,7 +58,10 @@ export class SubscriptionController {
   @Post('/send')
   async sendEmails(@Res() response: Response) {
     try {
-      await this.subscriptionService.sendEmails();
+      const rate = await lastValueFrom(
+        this.coingeckoService.getCurrentBtcRate(),
+      );
+      await this.subscriptionService.sendEmails(rate);
       response
         .status(HttpStatus.OK)
         .json({ message: 'Emails sent successfully' });
