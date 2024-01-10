@@ -49,4 +49,18 @@ export class SubscriptionController {
         .json({ message: error.message });
     }
   }
+
+  @Post('/send')
+  async sendEmails(@Res() response: Response) {
+    try {
+      await this.subscriptionService.sendEmails();
+      response
+        .status(HttpStatus.OK)
+        .json({ message: 'Emails sent successfully' });
+    } catch (error) {
+      response
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ message: error.message });
+    }
+  }
 }

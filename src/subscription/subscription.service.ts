@@ -1,10 +1,16 @@
 import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Subscription } from '@prisma/client';
+import { CoingeckoService } from '../coingecko/coingecko.service';
+import * as nodemailer from 'nodemailer';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class SubscriptionService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private coingeckoService: CoingeckoService,
+  ) {}
 
   async subscribe(email: string): Promise<Subscription> {
     const subscription = await this.prisma.subscription.findUnique({
@@ -44,5 +50,43 @@ export class SubscriptionService {
 
   async getAllEmails(): Promise<Subscription[]> {
     return this.prisma.subscription.findMany();
+  }
+
+  async sendEmails(): Promise<void> {
+    const rate = await lastValueFrom(this.coingeckoService.getCurrentBtcRate());
+
+    const subject = 'Current BTC to UAH Rate';
+    const text = `The current BTC to UAH rate is: ${rate} UAH.`;
+
+    const subscribers = await this.prisma.subscription.findMany({
+      where: { status: 'subscribed' },
+    });
+
+    const transporter = nodemailer.createTransport({
+      host: 'sandbox.smtp.mailtrap.io',
+      port: 2525,
+      auth: {
+        user: 'b3c232d15d1b87',
+        pass: '685996a606486a',
+      },
+    });
+
+    for (const subscriber of subscribers) {
+      if (subscriber.status === 'subscribed') {
+        try {
+          await transporter.sendMail({
+            from: 'universe_tt@gmail.com',
+            to: subscriber.email,
+            subject: subject,
+            text: text,
+          });
+          console.log(`Email sent to ${subscriber.email}`);
+        } catch (error) {
+          console.error(
+            `Failed to send email to ${subscriber.email}: ${error}`,
+          );
+        }
+      }
+    }
   }
 }

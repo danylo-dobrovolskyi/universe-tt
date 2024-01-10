@@ -6,6 +6,7 @@ import { CoingeckoController } from './coingecko.controller';
 @Module({
   imports: [HttpModule],
   providers: [CoingeckoService],
+  exports: [CoingeckoService],
   controllers: [CoingeckoController],
 })
 export class CoingeckoModule {}
