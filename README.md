@@ -15,13 +15,13 @@
 The BTC Application is an API service designed to track and provide real-time information about the Bitcoin (BTC) to Ukrainian Hryvnia (UAH) exchange rate. It allows users to subscribe with their email addresses to receive updates on the BTC to UAH rate and provides functionality to send the current rate to all subscribed users. The project is implemented with a focus on functionality, scalability, and robust data handling.
 
 ## Technologies Used
-- **NestJS:**
-- **TypeScript:**
-- **PostgreSQL:**
-- **Prisma:**
-- **Docker:**
-- **Prometheus:**
-- **Mailtrap:**
+- **NestJS**
+- **TypeScript**
+- **PostgreSQL**
+- **Prisma**
+- **Docker**
+- **Prometheus**
+- **Mailtrap**
 
 ## Prerequisites
 - Docker and Docker Compose should be installed on your machine.
@@ -67,10 +67,11 @@ After successfully installing the application, you can use Postman to interact w
 - **Description:** Subscribes an email to receive updates on the exchange rate.
 - **Example Request in Postman:**
   Send a POST request to `http://localhost:3001/subscription/subscribe` with the following JSON body:
-  ```json
+```json
   {
       "email": "example@example.com"
   }
+```
 
   ### Unsubscribe Email
 - **Endpoint:** `/unsubscribe`
@@ -78,10 +79,11 @@ After successfully installing the application, you can use Postman to interact w
 - **Description:** Unsubscribes an email from receiving updates.
 - **Example Request in Postman:**
   Send a DELETE request to `http://localhost:3001/subscription/unsubscribe` with the following JSON body:
-  ```json
+```json
   {
       "email": "example@example.com"
   }
+```
 
   ### Get All Emails
 - **Endpoint:** `/emails`
