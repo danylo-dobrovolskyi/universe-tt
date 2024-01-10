@@ -4,12 +4,14 @@ import { Subscription } from '@prisma/client';
 import { CoingeckoService } from '../coingecko/coingecko.service';
 import * as nodemailer from 'nodemailer';
 import { lastValueFrom } from 'rxjs';
+import { MetricsService } from '../metrics/metrics.service';
 
 @Injectable()
 export class SubscriptionService {
   constructor(
     private prisma: PrismaService,
     private coingeckoService: CoingeckoService,
+    private metricsService: MetricsService,
   ) {}
 
   async subscribe(email: string): Promise<Subscription> {
@@ -28,6 +30,7 @@ export class SubscriptionService {
       });
     }
 
+    this.metricsService.incrementEmailSubscriptionCount();
     return this.prisma.subscription.create({
       data: { email, status: 'subscribed' },
     });
@@ -42,6 +45,7 @@ export class SubscriptionService {
       throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
     }
 
+    this.metricsService.incrementEmailUnsubscriptionCount();
     return this.prisma.subscription.update({
       where: { email },
       data: { status: 'unsubscribed' },
@@ -81,10 +85,12 @@ export class SubscriptionService {
             text: text,
           });
           console.log(`Email sent to ${subscriber.email}`);
+          this.metricsService.incrementEmailSentCount();
         } catch (error) {
           console.error(
             `Failed to send email to ${subscriber.email}: ${error}`,
           );
+          this.metricsService.incrementEmailErrorCount();
         }
       }
     }
