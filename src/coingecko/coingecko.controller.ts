@@ -7,15 +7,16 @@ import { lastValueFrom } from 'rxjs';
 export class CoingeckoController {
   constructor(private readonly coingeckoService: CoingeckoService) {}
 
+  // Retrieve the current BTC to UAH exchange rate
   @Get()
   async getBtcRate(@Res() response: Response) {
     try {
       const rate = await lastValueFrom(
         this.coingeckoService.getCurrentBtcRate(),
       );
-      console.log('BTC to UAH price: ' + rate);
       response.status(HttpStatus.OK).json({ btcToUah: rate });
     } catch (error) {
+      // Handle any potential errors during the API call
       response
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .json({ message: error.message });

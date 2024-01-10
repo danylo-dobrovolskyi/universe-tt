@@ -1,73 +1,125 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Table of Contents
+1. [Description](#description)
+2. [Technologies Used](#technologies-used)
+3. [Prerequisites](#prerequisites)
+4. [Installation](#installation)
+5. [Accessing the Database](#accessing-the-database)
+6. [Usage](#usage)
+7. [Monitoring with Prometheus](#monitoring-with-prometheus)
+8. [Email Testing with Mailtrap](#email-testing-with-mailtrap)
+9. [Contact](#contact)
+10. [License](#license)
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+The BTC Application is an API service designed to track and provide real-time information about the Bitcoin (BTC) to Ukrainian Hryvnia (UAH) exchange rate. It allows users to subscribe with their email addresses to receive updates on the BTC to UAH rate and provides functionality to send the current rate to all subscribed users. The project is implemented with a focus on functionality, scalability, and robust data handling.
+
+## Technologies Used
+- **NestJS:**
+- **TypeScript:**
+- **PostgreSQL:**
+- **Prisma:**
+- **Docker:**
+- **Prometheus:**
+- **Mailtrap:**
+
+## Prerequisites
+- Docker and Docker Compose should be installed on your machine.
+- Node.js should be installed for running the application locally.
+- PostgreSQL should be set up for database management.
 
 ## Installation
 
+1. Clone the repository
+2. Navigate to the project directory
+
 ```bash
+# Install Node.js Dependencies
 $ npm install
+
+# Start the Application with Docker Compose
+$ docker-compose up --build
 ```
 
-## Running the app
+## Accessing the Database
 
 ```bash
-# development
-$ npm run start
+# To access the database locally
+$ psql -h localhost -p 5432 -U btc-app-user -d btc-app-db
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# Showing all users with theri statuses
+$ SELECT * FROM "Subscription";
 ```
 
-## Test
+## Usage
 
-```bash
-# unit tests
-$ npm run test
+After successfully installing the application, you can use Postman to interact with the following endpoints:
 
-# e2e tests
-$ npm run test:e2e
+### Get Current BTC to UAH Rate
+- **Endpoint:** `/rate`
+- **Method:** GET
+- **Description:** Returns the latest BTC to UAH exchange rate.
+- **Example Request:** `http://localhost:3001/rate`
 
-# test coverage
-$ npm run test:cov
-```
+### Subscribe Email to Receive Current Rate
+- **Endpoint:** `/subscribe`
+- **Method:** POST
+- **Description:** Subscribes an email to receive updates on the exchange rate.
+- **Example Request in Postman:**
+  Send a POST request to `http://localhost:3001/subscription/subscribe` with the following JSON body:
+  ```json
+  {
+      "email": "example@example.com"
+  }
 
-## Support
+  ### Unsubscribe Email
+- **Endpoint:** `/unsubscribe`
+- **Method:** DELETE
+- **Description:** Unsubscribes an email from receiving updates.
+- **Example Request in Postman:**
+  Send a DELETE request to `http://localhost:3001/subscription/unsubscribe` with the following JSON body:
+  ```json
+  {
+      "email": "example@example.com"
+  }
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+  ### Get All Emails
+- **Endpoint:** `/emails`
+- **Method:** GET
+- **Description:** Retrieves a list of all subscribed and unsubscribed emails with their statuses.
+- **Example Request in Postman:**
+  Send a GET request to `http://localhost:3001/subscription/emails`
 
-## Stay in touch
+  ### Send Current BTC Rate to All Subscribers
+- **Endpoint:** `/send`
+- **Method:** POST
+- **Description:** Sends the current BTC to UAH rate to all subscribed emails.
+- **Example Request in Postman:**
+  Send a POST request to `http://localhost:3001/subscription/send`
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Monitoring with Prometheus
+The BTC Application is integrated with Prometheus for monitoring and tracking application metrics.
+
+### Accessing Prometheus Metrics
+- **Endpoint for Metrics:** `/metrics`
+- **Method:** GET
+- **Usage:** Access this endpoint to view various metrics collected by Prometheus, such as the rate of email subscriptions, unsubscriptions, email sending errors, and more.
+- **Example:** Open `http://localhost:3001/metrics` in your browser to view the metrics dashboard but it it easier to look at Prometheus metrics at their UI. It is located on `http://localhost:9090`.
+
+### Email Testing with Mailtrap
+For testing email functionalities, the application uses Mailtrap, a fake SMTP server.
+
+### Viewing Sent Emails in Mailtrap
+1. **Set Up a Mailtrap Account:** If you don't have one, create a free account at [Mailtrap.io](https://mailtrap.io).
+2. **Configure Mailtrap Credentials:** In your application, set up the SMTP configuration with your Mailtrap credentials (username and password).
+3. **Sending Test Emails:** Use the application to send emails as per usual. These emails will be intercepted by Mailtrap.
+4. **Check Your Mailtrap Inbox:** Log in to your Mailtrap account and go to your inbox to view the emails sent by the application. You'll see the emails that are "sent" by your application, allowing you to review their content and headers.
+
+## Contact
+
+- For any additional questions or feedback, please contact dobrovolskyi.dev@gmail.com or Telegram `@d_dobrovolsky`.
+
 
 ## License
 
-Nest is [MIT licensed](LICENSE).
+This project is released under [MIT License](LICENSE).

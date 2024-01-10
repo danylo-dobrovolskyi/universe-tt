@@ -11,7 +11,6 @@ import { SubscriptionService } from './subscription.service';
 import { CoingeckoService } from '../coingecko/coingecko.service';
 import { Response } from 'express';
 import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
-//import { lastValueFrom } from 'rxjs';
 
 @Controller('subscription')
 export class SubscriptionController {
@@ -19,6 +18,8 @@ export class SubscriptionController {
     private readonly subscriptionService: SubscriptionService,
     private readonly coingeckoService: CoingeckoService,
   ) {}
+
+  // Endpoint to subscribe a user's email
   @Post('/subscribe')
   async subscribe(@Body('email') email: string, @Res() response: Response) {
     try {
@@ -31,6 +32,7 @@ export class SubscriptionController {
     }
   }
 
+  // Endpoint to unsubscribe a user's email
   @Delete('/unsubscribe')
   async unsubscribe(@Body('email') email: string, @Res() response: Response) {
     try {
@@ -43,6 +45,7 @@ export class SubscriptionController {
     }
   }
 
+  // Endpoint to retrieve all subscribed and unsubscribed emails
   @Get('/emails')
   async getAllEmails(@Res() response: Response) {
     try {
@@ -55,6 +58,7 @@ export class SubscriptionController {
     }
   }
 
+  // Endpoint to send current BTC rate to all subscribers
   @Post('/send')
   async sendEmails(@Res() response: Response) {
     try {

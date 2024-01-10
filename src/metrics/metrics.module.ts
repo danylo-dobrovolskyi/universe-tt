@@ -5,6 +5,7 @@ import { MetricsService } from './metrics.service';
 
 @Module({
   imports: [
+    // Register the Prometheus module for collecting metrics
     PrometheusModule.register({
       path: '/metrics',
       defaultMetrics: {

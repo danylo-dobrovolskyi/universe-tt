@@ -11,6 +11,7 @@ export class CoingeckoService {
     private metricsService: MetricsService,
   ) {}
 
+  // Fetches the current exchange rate of BTC to UAH from Coingecko API
   getCurrentBtcRate(): Observable<number> {
     return this.httpService
       .get(
@@ -19,6 +20,7 @@ export class CoingeckoService {
       .pipe(
         map((response) => {
           const rate = response.data.bitcoin.uah;
+          // Update the Prometheus metric with the latest rate
           this.metricsService.updateBtcToUahRate(rate);
           return rate;
         }),

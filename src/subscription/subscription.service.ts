@@ -17,28 +17,27 @@ export class SubscriptionService {
     private metricsService: MetricsService,
   ) {}
 
+  // Subscribe a user's email to the mailing list
   async subscribe(email: string): Promise<Subscription> {
     const subscription = await this.prisma.subscription.findUnique({
       where: { email },
     });
 
-    if (subscription && subscription.status === 'subscribed') {
-      throw new HttpException('Email already subscribed', HttpStatus.CONFLICT);
+    if (subscription) {
+      if (subscription.status === 'subscribed') {
+        throw new HttpException(
+          'Email already subscribed',
+          HttpStatus.CONFLICT,
+        );
+      }
+      return this.updateSubscriptionStatus(email, 'subscribed');
+    } else {
+      this.metricsService.incrementEmailSubscriptionCount();
+      return this.createSubscription(email);
     }
-
-    if (subscription && subscription.status === 'unsubscribed') {
-      return this.prisma.subscription.update({
-        where: { email },
-        data: { status: 'subscribed' },
-      });
-    }
-
-    this.metricsService.incrementEmailSubscriptionCount();
-    return this.prisma.subscription.create({
-      data: { email, status: 'subscribed' },
-    });
   }
 
+  // Unsubscribe a user's email from the mailing list
   async unsubscribe(email: string): Promise<Subscription> {
     const subscription = await this.prisma.subscription.findUnique({
       where: { email },
@@ -49,16 +48,33 @@ export class SubscriptionService {
     }
 
     this.metricsService.incrementEmailUnsubscriptionCount();
+    return this.updateSubscriptionStatus(email, 'unsubscribed');
+  }
+
+  // Updating user's email status
+  private async updateSubscriptionStatus(
+    email: string,
+    status: 'subscribed' | 'unsubscribed',
+  ): Promise<Subscription> {
     return this.prisma.subscription.update({
       where: { email },
-      data: { status: 'unsubscribed' },
+      data: { status },
     });
   }
 
+  // Creating subscription for user's email
+  private async createSubscription(email: string): Promise<Subscription> {
+    return this.prisma.subscription.create({
+      data: { email, status: 'subscribed' },
+    });
+  }
+
+  // Retrieve all emails with their subscription status
   async getAllEmails(): Promise<Subscription[]> {
     return this.prisma.subscription.findMany();
   }
 
+  // Cron job to send daily rate notifications
   @Cron(CronExpression.EVERY_DAY_AT_9AM)
   async handleDailyRateNotification() {
     const rate = await lastValueFrom(this.coingeckoService.getCurrentBtcRate());
@@ -66,10 +82,12 @@ export class SubscriptionService {
     this.lastSentRate = rate;
   }
 
+  // Check if the rate has changed more than 5% and notify subscribers
   async checkRateAndNotify() {
     const currentRate = await lastValueFrom(
       this.coingeckoService.getCurrentBtcRate(),
     );
+
     if (
       this.lastSentRate === null ||
       this.hasChangedMoreThanFivePercent(currentRate)
@@ -79,13 +97,18 @@ export class SubscriptionService {
     }
   }
 
+  // Helper method to determine if the rate has changed more than 5%
   private hasChangedMoreThanFivePercent(currentRate: number): boolean {
-    if (this.lastSentRate === null) return true;
+    if (this.lastSentRate === null) {
+      return true;
+    }
+
     const change =
       (Math.abs(currentRate - this.lastSentRate) / this.lastSentRate) * 100;
     return change > 5;
   }
 
+  // Send email notifications to all subscribers
   public async sendEmails(rate: number): Promise<void> {
     const subject = 'Current BTC to UAH Rate';
     const text = `The current BTC to UAH rate is: ${rate} UAH.`;
